@@ -9,6 +9,10 @@ your browser.
 
 ![Single file](https://img.shields.io/badge/build-single%20HTML%20file-success) ![No build step](https://img.shields.io/badge/build%20step-none-success) ![License](https://img.shields.io/badge/license-MIT-blue)
 
+> Part of the **[File Viewer](https://file-viewer.us/) family** — HTML, Markdown,
+> ePUB, PDF, and Data each have their own dedicated viewer. Use the **☰ menu**
+> in the header to jump between them.
+
 ## Features
 
 - 📄 **Drag & drop anywhere** — drop a `.pdf` on the page to read it. You can
