@@ -37,6 +37,7 @@
   [hidden]{display:none!important}
   html,body{margin:0;padding:0;background:var(--bg)}
   html,body{height:100%}
+  html,body{overflow-x:clip}   /* never let off-screen decorations (flyout panels, skip link) create a horizontal scrollbar */
   body{
     color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
@@ -91,28 +92,33 @@
   .swatch::-moz-color-swatch{border:1px solid var(--border); border-radius:50%}
 
   /* ---------- Auto-hiding header while reading ----------
-     Shown by default; scrolling down hides it, scrolling up (or a 5s idle
-     timer) brings it back. Driven by the .hdr-hidden class from JS. */
+     Shows briefly, then after 3s idle collapses to a thick handle over the page;
+     hover / touch / scroll-up brings it back. Driven by the .hdr-hidden class from JS. */
   body.viewing .topbar{
     position:fixed; top:0; left:0; right:0; z-index:36;
     box-shadow:0 6px 22px var(--shadow);
     transition:transform .28s ease, box-shadow .28s ease;
   }
   body.viewing.hdr-hidden .topbar{transform:translateY(-115%); box-shadow:none}
+  /* when the header is collapsed it shrinks to this thick, tappable line sitting over the page */
+  .hover-zone{display:none}
+  body.viewing .hover-zone{display:block; position:fixed; top:0; left:0; right:0; height:22px; z-index:35; cursor:pointer}
+  body.viewing.hdr-hidden .hover-zone::before{content:""; position:absolute; top:0; left:0; right:0; height:7px; background:var(--accent); box-shadow:0 1px 6px var(--shadow)}
+  body.viewing.hdr-hidden .hover-zone::after{content:""; position:absolute; top:1.5px; left:50%; transform:translateX(-50%); width:46px; height:4px; border-radius:2px; background:var(--accent-contrast); opacity:.7}
 
   /* ---------- Main / layout ---------- */
   main{flex:1 1 auto; min-height:0; width:100%; display:flex; flex-direction:column}
-  /* Full-screen drop target: the dashed drop zone fills the whole window. */
+  /* Empty state: a compact, centered dashed drop card (matches the other viewers). */
   .empty{
-    flex:1 1 auto; display:flex; padding:.75rem;
-    padding-bottom:calc(.75rem + env(safe-area-inset-bottom));
+    flex:1 1 auto; display:flex; align-items:center; justify-content:center;
+    text-align:center; padding:2rem 1.25rem;
+    padding-bottom:calc(2rem + env(safe-area-inset-bottom));
     cursor:pointer; color:var(--muted);
   }
   .empty-inner{
-    flex:1 1 auto; width:100%;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    text-align:center; gap:.35rem;
-    border:2px dashed var(--border); border-radius:16px; padding:2rem 1.5rem;
+    max-width:30rem; width:100%;
+    display:flex; flex-direction:column; align-items:center; gap:.35rem;
+    border:2px dashed var(--border); border-radius:16px; padding:2.25rem 1.5rem;
     transition:border-color .15s ease, background .15s ease;
   }
   .empty:hover .empty-inner{border-color:var(--accent); background:var(--overlay)}
@@ -354,13 +360,14 @@
     </a>
   </nav>
 </header>
+<div class="hover-zone" id="hoverZone" aria-hidden="true"></div>
 
 <main id="main">
   <section id="empty" class="empty" role="button" tabindex="0" aria-label="Open a PDF">
     <div class="empty-inner">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
       <p class="empty-title">Drop a PDF to read</p>
-      <p class="empty-sub">Drag &amp; drop anywhere, or tap to open. Your files never leave your device.</p>
+      <p class="empty-sub">Drag &amp; drop anywhere or tap to open. Accepts .pdf — your files never leave your device.</p>
     </div>
   </section>
   <div id="viewer" class="viewer" tabindex="-1" hidden></div>
@@ -510,7 +517,7 @@
   var pdfjsLib   = window.pdfjsLib;
 
   // Header auto-hide (scroll down hides; scroll up or a 5s idle reveals)
-  var HEADER_REVEAL_MS = 5000;
+  var HEADER_REVEAL_MS = 3000;   // idle time before the header collapses to the handle
   var lastScrollY = 0, headerTimer = null, hdrTicking = false;
 
   // Accepted file types for this (PDF) viewer
@@ -621,7 +628,7 @@
     viewer.hidden = false;
     pageNav.hidden = false;
     body.classList.add("viewing");
-    showHeader();                 // start with the header visible
+    revealHeader();               // show, then collapse to the handle after 3s
     lastScrollY = 0;
     currentPage = 1;
     zoomMode = "fit";
@@ -1129,12 +1136,9 @@
 
   /* ---------- Auto-hiding header: hide on scroll down; reveal on scroll up or after 5s ---------- */
   function showHeader(){ body.classList.remove("hdr-hidden"); clearTimeout(headerTimer); }
-  function hideHeader(){
-    if (!body.classList.contains("viewing")) return;
-    body.classList.add("hdr-hidden");
-    clearTimeout(headerTimer);
-    headerTimer = setTimeout(showHeader, HEADER_REVEAL_MS);   // auto-reveal after 5s
-  }
+  function hideHeader(){ if (!body.classList.contains("viewing")) return; body.classList.add("hdr-hidden"); clearTimeout(headerTimer); }
+  function armIdleHide(){ clearTimeout(headerTimer); headerTimer = setTimeout(hideHeader, HEADER_REVEAL_MS); }
+  function revealHeader(){ showHeader(); armIdleHide(); }
   viewer.addEventListener("scroll", function(){
     if (hdrTicking) return;
     hdrTicking = true;
@@ -1143,11 +1147,22 @@
       var y = viewer.scrollTop, dy = y - lastScrollY;
       lastScrollY = y;
       if (!pdfDoc) return;
-      if (y <= 6) showHeader();            // at the very top, always show
-      else if (dy > 6) hideHeader();       // scrolling down
-      else if (dy < -6) showHeader();      // scrolling up
+      if (dy > 6) hideHeader();            // scrolling down -> collapse to the handle
+      else if (dy < -6) revealHeader();    // scrolling up   -> reveal, then auto-hide after 3s
     });
   }, { passive: true });
+  // reveal via the top strip / handle (hover, tap, click); keep it up while the pointer is on the header
+  var hoverZone = document.getElementById("hoverZone");
+  if (hoverZone){
+    hoverZone.addEventListener("mouseenter", revealHeader);
+    hoverZone.addEventListener("click", revealHeader);
+    hoverZone.addEventListener("touchstart", function(){ revealHeader(); }, { passive:true });
+  }
+  var topbarEl = document.querySelector(".topbar");
+  if (topbarEl){
+    topbarEl.addEventListener("mouseenter", showHeader);
+    topbarEl.addEventListener("mouseleave", armIdleHide);
+  }
 
   /* ---------- Resize: re-fit when in fit-width mode ---------- */
   window.addEventListener("resize", function(){
