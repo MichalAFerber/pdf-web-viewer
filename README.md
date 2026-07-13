@@ -28,7 +28,6 @@ your browser.
   `PageUp`/`PageDown`, and `Home`/`End`.
 - 🔤 **Selectable text** — a real text layer sits over every page, so you can
   select and copy text just like in a desktop reader.
-- ➕ **New** (`+`) — clears the screen and opens a file picker.
 - 📋 **Copy** — copies your current text selection, or the current page's text
   if nothing is selected.
 - 🗑️ **Clear** — closes the PDF and empties the view.
@@ -39,9 +38,9 @@ your browser.
   The UI adapts for contrast, and your choice is **remembered** — saved to a
   cookie, with a `localStorage` fallback so even a downloaded `file://` copy
   remembers it. Starts on white.
-- 🫥 **Distraction-free** — once a PDF is open the header slides away; move your
-  mouse to the **top of the window** (or tap the top edge on mobile) to bring
-  it back.
+- 🫥 **Distraction-free** — while you read, the header hides when you scroll
+  **down** and comes back when you scroll **up** (or after a few seconds of
+  stillness).
 - 📱 **Mobile-first** & responsive, with safe-area support for notched phones.
 - 🔒 **Safe by default** — your files are parsed and rendered entirely in the
   browser and never leave your device.
