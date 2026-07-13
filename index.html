@@ -59,6 +59,7 @@
     border-bottom:1px solid var(--border-soft);
     flex:0 0 auto;
   }
+  @media (min-width:640px){ .topbar{padding-left:1rem; padding-right:1rem} }   /* match the other viewers' header padding */
   .doc-title{
     flex:1 1 auto; min-width:0;
     font-size:clamp(.9rem,3.3vw,1.1rem); font-weight:600; letter-spacing:-.01em;
@@ -265,9 +266,11 @@
   .footer p{margin:0}
   .footer a{color:var(--muted); text-decoration:underline; text-underline-offset:2px}
   .footer a:hover{color:var(--accent)}
-  .footer-close{
-    position:absolute; right:.4rem; top:.5rem;
-    display:inline-grid; place-items:center; width:30px; height:30px; padding:0;
+  /* .footer scope raises specificity above [data-tip]{position:relative}, which is
+     declared later and would otherwise knock this button back into normal flow. */
+  .footer .footer-close{
+    position:absolute; right:.5rem; top:50%; transform:translateY(-50%);
+    display:inline-grid; place-items:center; width:32px; height:32px; padding:0;
     background:transparent; color:var(--muted); border:0; border-radius:8px;
     cursor:pointer; -webkit-tap-highlight-color:transparent;
     transition:background .15s ease, color .15s ease;
