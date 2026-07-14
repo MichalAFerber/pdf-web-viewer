@@ -65,6 +65,7 @@
     font-size:clamp(.9rem,3.3vw,1.1rem); font-weight:600; letter-spacing:-.01em;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text);
   }
+  .brand-icon{flex:0 0 auto; width:24px; height:24px; display:block; border-radius:5px}
   .actions{flex:0 0 auto; display:flex; align-items:center; gap:.1rem}
   .iconbtn{
     display:inline-grid; place-items:center;
@@ -346,7 +347,8 @@
   <button id="btnMenu" class="iconbtn" type="button" data-tip="Menu" aria-label="Open navigation menu" aria-expanded="false" aria-controls="navPanel">
     <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
   </button>
-  <span class="doc-title" id="docTitle"></span>
+  <img id="brandIcon" class="brand-icon" alt="" aria-hidden="true">
+  <span class="doc-title" id="docTitle">PDF Viewer</span>
   <nav class="actions" aria-label="Actions">
     <button id="btnToc" class="iconbtn" type="button" data-tip="Outline" aria-label="Document outline" aria-expanded="false" aria-controls="tocPanel">
       <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
@@ -503,6 +505,8 @@
   var overlay    = doc.getElementById("dropOverlay");
   var toastEl    = doc.getElementById("toast");
   var docTitle   = doc.getElementById("docTitle");
+    var brandIcon   = doc.getElementById("brandIcon");
+    (function(){ var fl = doc.querySelector('link[rel="icon"]'); if (brandIcon && fl) brandIcon.src = fl.href; })();
   var bgPicker   = doc.getElementById("bgPicker");
   var themeColor = doc.getElementById("themeColor");
   var tocPanel   = doc.getElementById("tocPanel");
